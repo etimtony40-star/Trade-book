@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0b6b4f">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%3E%3Crect%20width%3D%2240%22%20height%3D%2240%22%20rx%3D%2210%22%20fill%3D%22%230b6b4f%22%2F%3E%3Cpath%20d%3D%22M12.5%208h15A1.5%201.5%200%200%201%2029%209.5V31.5l-3-2.1-3%202.1-3-2.1-3%202.1-3-2.1-3%202.1V9.5A1.5%201.5%200%200%201%2012.5%208z%22%20fill%3D%22%23fff%22%2F%3E%3Cpath%20d%3D%22M15%2014h10M15%2018.5h10%22%20stroke%3D%22%230b6b4f%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M15%2023.5h6%22%20stroke%3D%22%230b6b4f%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<title>TradeBook: invoices, receipts and sales ledger</title>
+<link rel="stylesheet" href="style.css">
+<style>
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <div class="brand"><span id="logo" aria-hidden="true"></span><span class="bt">TradeBook<small>Sales ledger for small traders</small></span></div>
+  <nav aria-label="Main">
+    <button data-v="dash" class="on">Ledger</button>
+    <button data-v="new">New document</button>
+    <button data-v="cli">Clients</button>
+    <button data-v="loan">Loans</button>
+    <button data-v="set">My business</button>
+  </nav>
+  <button class="theme" id="theme" type="button" title="Toggle dark mode"></button>
+</div></header>
+
+<main>
+<section id="v-dash" class="view on">
+  <h2>Sales ledger</h2>
+  <p class="sub">Every invoice and receipt you create is recorded here.</p>
+  <div id="banner"></div>
+  <div class="stats">
+    <div class="card stat"><span>Total sales</span><b id="s-all">₦0.00</b></div>
+    <div class="card stat"><span>Money received</span><b id="s-paid">₦0.00</b></div>
+    <div class="card stat"><span>Still owed to you</span><b id="s-due">₦0.00</b></div>
+    <div class="card stat"><span>Documents</span><b id="s-n">0</b></div>
+  </div>
+  <div class="card" style="margin-bottom:14px"><b>Sales in the last 7 days</b><div id="chart" aria-label="Sales chart"></div></div>
+  <div class="two">
+    <div class="card"><div class="hd"><b>Money received</b><b id="recv-t"></b></div><div id="recv"></div></div>
+    <div class="card"><div class="hd"><b>Still owed to you</b><b id="owed-t"></b></div><div id="owed"></div></div>
+  </div>
+  <div class="card">
+    <div class="tools">
+      <input id="q" type="search" placeholder="Search by customer or number" aria-label="Search">
+      <select id="flt" aria-label="Filter"><option value="all">All documents</option><option value="paid">Paid</option><option value="unpaid">Unpaid</option><option value="over">Overdue</option><option value="INV">Invoices</option><option value="RCT">Receipts</option></select>
+      <button class="btn" id="csv">Export CSV</button>
+      <button class="btn p" data-go="new">Create document</button>
+    </div>
+    <div class="tw"><table class="rt"><thead><tr><th>Number</th><th>Customer</th><th>Date</th><th>Status</th><th class="r">Amount</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+    <div id="none" class="empty" hidden><h3>No sales recorded yet</h3><p>Create your first invoice or receipt, or load sample sales to see how the ledger works.</p><button class="btn" id="demo">Load sample sales</button></div>
+  </div>
+</section>
+
+<section id="v-new" class="view">
+  <h2 id="ed-title">New document</h2>
+  <p class="sub">Fill in the details on the left. The preview updates as you type.</p>
+  <div class="editor">
+    <div class="card f f-col" id="form">
+      <div class="seg" role="radiogroup" aria-label="Document type">
+        <label><input type="radio" name="type" value="INV" checked>Invoice</label>
+        <label><input type="radio" name="type" value="RCT">Receipt</label>
+      </div>
+      <div class="row"><label>Customer name<input id="cust" list="cl" autocomplete="off" placeholder="e.g. Mrs Ngozi Okafor"></label><label>Customer phone<input id="phone" inputmode="tel" placeholder="0803 000 0000"></label></div>
+      <div class="row"><label>Customer email<input id="email" type="email" placeholder="name@email.com"></label><label>Billing address<input id="addr"></label></div>
+      <div class="row"><label>Date<input id="date" type="date"></label><label>Payment terms<select id="terms"><option value="0">Due on receipt</option><option value="7">Net 7</option><option value="15">Net 15</option><option value="30">Net 30</option><option value="-1">Custom due date</option></select></label></div>
+      <div id="due-w"><label>Due date<input id="due" type="date"></label></div>
+      <div><b style="font-size:13px;color:var(--mut)">Items sold</b><div id="items" style="margin-top:6px"></div><button class="btn s" id="add" type="button">Add item</button></div>
+      <div class="row"><label>Discount (%)<input id="disc" type="number" min="0" max="100" step="any"></label><label>VAT (%)<input id="vat" type="number" min="0" max="100" step="any"></label></div>
+      <label id="st-l">Payment status<select id="status"><option value="draft">Draft</option><option value="sent">Sent</option><option value="viewed">Viewed by customer</option><option value="paid">Paid in full</option></select></label>
+      <label>Notes<textarea id="notes" rows="2" placeholder="Thank you for your patronage"></textarea></label>
+      <div class="bar-act" style="margin-top:0"><button class="btn p" id="save">Save to ledger</button><button class="btn" id="reset" type="button">Start over</button></div>
+    </div>
+    <div class="sticky">
+      <div class="paper" id="paper"></div>
+      <div class="bar-act"><button class="btn p" id="dl">Download PDF</button><button class="btn" id="print">Print</button><button class="btn" id="wa">Send on WhatsApp</button><button class="btn" id="mail">Send by email</button><button class="btn" id="share">Copy message</button></div>
+    </div>
+  </div>
+</section>
+
+<section id="v-cli" class="view">
+  <h2>Clients</h2>
+  <p class="sub">Clients are saved when you save a document, so repeat customers fill in automatically.</p>
+  <div class="card tw"><table class="rt"><thead><tr><th>Client</th><th>Contact</th><th class="r">Documents</th><th class="r">Total billed</th><th class="r">Owes you</th><th class="r">Account</th><th></th></tr></thead><tbody id="cl-rows"></tbody></table>
+  <div id="cl-none" class="empty" hidden><h3>No clients yet</h3><p>Save your first invoice and the client will appear here with their billing history.</p></div></div>
+</section>
+
+<section id="v-loan" class="view">
+  <h2>Loans</h2>
+  <p class="sub">Lend money to a client. Interest is added every minute and you get a reminder each time. Repayments count as money received.</p>
+  <div class="card f" style="margin-bottom:14px">
+    <div class="row"><label>Client<input id="l-cl" list="cl" autocomplete="off" placeholder="e.g. Chinedu Stores"></label><label>Phone<input id="l-ph" inputmode="tel"></label></div>
+    <div class="row"><label>Amount to lend (₦)<input id="l-amt" type="number" min="0" step="any"></label><label>Interest (% of the amount, every minute)<input id="l-rate" type="number" min="0" step="any" value="0.01"></label></div>
+    <div class="row"><label>Days to repay<input id="l-days" type="number" min="0" step="any" value="30"></label><p class="sub" style="margin:0;align-self:end">If not repaid by then, the balance is taken from the client's account and a notification shows.</p></div>
+    <p id="l-hint" class="sub" style="margin:0"></p>
+    <div><button class="btn p" id="l-go">Lend money</button></div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="hd"><b>Minute reminders</b><label style="display:flex;gap:8px;align-items:center;font-size:13px;font-weight:600"><input type="checkbox" id="rem"> Remind me every minute</label></div>
+    <p class="sub" style="margin:0 0 10px">Each time interest is added, a reminder appears here and on screen. Tap Send to client to message them on WhatsApp. TradeBook cannot message clients by itself, and reminders appear while the page is open.</p>
+    <button class="btn s" id="ntf" type="button" style="margin-bottom:8px">Turn on phone or desktop alerts</button><div id="feed"></div>
+  </div>
+  <div class="card"><div class="tw"><table class="rt"><thead><tr><th>Client</th><th>Lent</th><th>Started</th><th>Repay in</th><th class="r">Interest so far</th><th class="r">Repaid</th><th class="r">Balance now</th><th>Status</th><th></th></tr></thead><tbody id="l-rows"></tbody></table></div>
+  <div id="l-none" class="empty" hidden><h3>No loans yet</h3><p>Lend money above and the balance will start growing every second.</p></div></div>
+</section>
+
+<section id="v-set" class="view">
+  <h2>My business</h2>
+  <p class="sub">These details appear at the top of every document.</p>
+  <div class="card f" style="max-width:620px">
+    <label>Business name<input id="s-name" placeholder="e.g. Adaeze Provisions"></label>
+    <div class="row"><label>Phone<input id="s-phone"></label><label>Email<input id="s-email" type="email"></label></div>
+    <label>Address<input id="s-addr"></label>
+    <label>Payment details<textarea id="s-bank" rows="2" placeholder="Bank name, account name, account number"></textarea></label>
+    <label>Default VAT (%)<input id="s-vat" type="number" min="0" step="any"></label>
+    <div class="row"><label>Logo<input id="s-logo" type="file" accept="image/*"></label><label>Signature image<input id="s-sig" type="file" accept="image/*"></label></div>
+    <div class="row"><label>Brand colour<input id="s-color" type="color" style="height:42px;padding:3px"></label><label>Default payment terms<select id="s-terms"><option value="0">Due on receipt</option><option value="7">Net 7</option><option value="15">Net 15</option><option value="30">Net 30</option></select></label></div>
+    <label>Online payment link<input id="s-link" placeholder="https://paystack.com/pay/yourshop"></label>
+    <div><button class="btn s" id="rm-img" type="button">Remove logo and signature</button></div>
+    <div class="row"><button class="btn" id="bk" type="button">Download backup</button><button class="btn" id="rsb" type="button">Restore backup</button><input id="rs" type="file" accept=".json,application/json" hidden></div>
+    <div><button class="btn p" id="s-save">Save business details</button></div>
+  </div>
+</section>
+</main>
+<div id="toast" role="status"></div>
+<datalist id="cl"></datalist>
+
+<script src="script.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="financing.js"></script>
+<script src="purchases.js"></script>
+</body>
+</html>
